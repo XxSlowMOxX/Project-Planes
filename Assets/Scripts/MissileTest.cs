@@ -8,8 +8,12 @@ public class MissileTest : MonoBehaviour, IEntityInterface
     public Team myTeam { get; set; }
 
     public GameObject seeker;
-
     public float maxGimbalAngle = 15;
+    public AnimationCurve thrustCurve;
+
+    private bool launched;
+    private PlaneTest target;
+    private float launchTime;
 
     public float getThermalSignature(Vector3 otherPos)
     {
@@ -33,6 +37,7 @@ public class MissileTest : MonoBehaviour, IEntityInterface
                 Gizmos.DrawLine(seeker.transform.position, plane.transform.position);
                 Gizmos.color = Color.red;
                 locked = true;
+                target = plane;
             } else
                 Gizmos.DrawLine(seeker.transform.position, plane.transform.position);
             if (locked != targetLocked)
@@ -44,11 +49,36 @@ public class MissileTest : MonoBehaviour, IEntityInterface
         }
     }
 
+    public void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && !launched)
+        {
+            launched = true;
+            launchTime = Time.timeSinceLevelLoad;
+        }
+    }
+
+    public void FixedUpdate()
+    {
+        if (launched)
+        {
+            this.GetComponent<Rigidbody2D>().AddForce(transform.up * thrustCurve.Evaluate(Time.timeSinceLevelLoad - launchTime));
+            if(target != null)
+            {
+                this.GetComponent<Rigidbody2D>().velocity = Vector3.RotateTowards(this.GetComponent<Rigidbody2D>().velocity, target.gameObject.transform.position - transform.position, 0.05f, 0);
+            }
+            transform.up = GetComponent<Rigidbody2D>().velocity.normalized;
+        }
+    }
+
     public void LockSound(bool play)
     {
         if (play)
             this.GetComponent<AudioSource>().UnPause();
         else
+        {
             this.GetComponent<AudioSource>().Pause();
+            target = null;
+        }
     }
 }
