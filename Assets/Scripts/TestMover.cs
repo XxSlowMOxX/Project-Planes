@@ -5,9 +5,17 @@ using UnityEngine;
 public class TestMover : MonoBehaviour
 {
     public float speed;
+    public AnimationCurve ThrustCurve;
 
-    void Update()
+    private float initTime;
+
+    private void Start()
     {
-        this.transform.position += this.transform.up * speed * Time.deltaTime;
+        initTime = Time.timeSinceLevelLoad;
+    }
+
+    void FixedUpdate()
+    {
+        this.GetComponent<Rigidbody2D>().AddForce(transform.up * ThrustCurve.Evaluate(Time.timeSinceLevelLoad - initTime));
     }
 }
