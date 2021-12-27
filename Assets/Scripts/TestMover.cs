@@ -17,5 +17,7 @@ public class TestMover : MonoBehaviour
     void FixedUpdate()
     {
         this.GetComponent<Rigidbody2D>().AddForce(transform.up * ThrustCurve.Evaluate(Time.timeSinceLevelLoad - initTime));
+        this.GetComponent<Rigidbody2D>().AddForce(-transform.right * 1000);
+        this.transform.up = this.GetComponent<Rigidbody2D>().velocity.normalized;
     }
 }

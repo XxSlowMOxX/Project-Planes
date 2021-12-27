@@ -10,8 +10,9 @@ public class MissileTest : MonoBehaviour, IEntityInterface
     public GameObject seeker;
     public float maxGimbalAngle = 15;
     public AnimationCurve thrustCurve;
+    public Vector3 destination = Vector3.zero;
 
-    private bool launched;
+    public bool launched = false;
     private PlaneTest target;
     private float launchTime;
 
@@ -32,6 +33,7 @@ public class MissileTest : MonoBehaviour, IEntityInterface
         foreach (PlaneTest plane in Planes)
         {
             float angle = Vector3.Angle(transform.up, (plane.transform.position - seeker.transform.position).normalized);
+
             if (angle < maxGimbalAngle) {
                 Gizmos.color = Color.green;
                 Gizmos.DrawLine(seeker.transform.position, plane.transform.position);
@@ -47,6 +49,9 @@ public class MissileTest : MonoBehaviour, IEntityInterface
                 targetLocked = locked;
             }
         }
+
+        Gizmos.color = Color.blue;
+        Gizmos.DrawLine(this.transform.position + destination, this.transform.position);
     }
 
     public void Update()
@@ -65,9 +70,17 @@ public class MissileTest : MonoBehaviour, IEntityInterface
             this.GetComponent<Rigidbody2D>().AddForce(transform.up * thrustCurve.Evaluate(Time.timeSinceLevelLoad - launchTime));
             if(target != null)
             {
-                this.GetComponent<Rigidbody2D>().velocity = Vector3.RotateTowards(this.GetComponent<Rigidbody2D>().velocity, target.gameObject.transform.position - transform.position, 0.05f, 0);
+                destination = ( Mathf.Sqrt((this.transform.position - target.transform.position).magnitude) * (Vector3)target.GetComponent<Rigidbody2D>().velocity) +
+                     (target.transform.position - this.transform.position);
+
+                this.GetComponent<Rigidbody2D>().velocity = Vector3.RotateTowards(this.GetComponent<Rigidbody2D>().velocity, destination, Mathf.Deg2Rad * maxGimbalAngle * 0.90f, 0) ;
             }
             transform.up = GetComponent<Rigidbody2D>().velocity.normalized;
+
+            if (  Time.timeSinceLevelLoad -launchTime> 15)
+            {
+                Destroy(this.gameObject);
+            }
         }
     }
 
